@@ -6,6 +6,7 @@ import (
 )
 
 // String returns the value of the environment variable named by the key
+// panics if the environment variable is empty and no defaultValue is provided
 //
 // # If the environment variable is empty and no defaultValue is provided, it panics
 //
@@ -27,7 +28,34 @@ func String(key string, defaultValue ...string) string {
 	panic("Missing env variable: '" + key + "'")
 }
 
+// StringPtr returns the pointer value of the environment variable named by the key
+// difference between StringPtr and String is that StringPtr returns a pointer to the value
+// so that it can be nil if the environment variable is empty insteda of throwing a panic
+//
+// # If the environment variable is empty and no defaultValue is provided, it panics
+//
+// Example:
+//
+//	host := env.String("HOST")
+//	if host != nil {
+//		fmt.Println(*host)
+//	}
+func StringPtr(key string, defaultValue ...string) *string {
+	if value, ok := os.LookupEnv(key); ok {
+		if value != "" {
+			return &value
+		}
+	}
+
+	if len(defaultValue) > 0 {
+		return &defaultValue[0]
+	}
+
+	return nil
+}
+
 // Int64 returns the value of the environment variable named by the key
+// panics if the environment variable is empty and no defaultValue is provided
 //
 // # If the environment variable is empty and no defaultValue is provided, it panics
 //
@@ -52,6 +80,7 @@ func Int64(key string, defaultValue ...int64) int64 {
 }
 
 // Bool returns the value of the environment variable named by the key
+// default value is false if not provided
 //
 // # If the environment variable is empty and no defaultValue is provided, it panics
 //
@@ -72,5 +101,5 @@ func Bool(key string, defaultValue ...bool) bool {
 		return defaultValue[0]
 	}
 
-	panic("Missing env variable: '" + key + "'")
+	return false
 }
