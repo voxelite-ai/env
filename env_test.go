@@ -106,3 +106,51 @@ func (s *Int64Suite) Test_WhenNotSetWithDefaultValue() {
 
 	s.Equal(s.defaultValue, got)
 }
+
+// Enum Suite
+
+type EnumSuite struct {
+	suite.Suite
+
+	key          string
+	value        Enum
+	defaultValue Enum
+}
+
+type Enum string
+
+const (
+	EnumA Enum = "A"
+	EnumB Enum = "B"
+	EnumC Enum = "C"
+)
+
+func (s *EnumSuite) SetupTest() {
+	s.key = uuid.New().String()
+	s.value = EnumA
+	s.defaultValue = EnumB
+}
+
+func TestStringEnumTestSuite(t *testing.T) {
+	suite.Run(t, new(EnumSuite))
+}
+
+func (s *EnumSuite) TestEnum() {
+	s.T().Setenv(s.key, string(s.value))
+
+	value := env.StringEnum(s.key, []Enum{EnumA, EnumB}, s.defaultValue)
+	s.Equal(s.value, value)
+}
+
+func (s *EnumSuite) TestEnum_WhenNotSet() {
+	value := env.StringEnum(s.key, []Enum{EnumA, EnumB}, s.defaultValue)
+	s.Equal(s.defaultValue, value)
+}
+
+func (s *EnumSuite) TestEnum_WhenNotInList() {
+	s.T().Setenv(s.key, "D")
+
+	s.Panics(func() {
+		env.StringEnum(s.key, []Enum{EnumA, EnumB})
+	})
+}

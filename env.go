@@ -3,6 +3,7 @@ package env
 import (
 	"os"
 	"strconv"
+	"strings"
 )
 
 // String returns the value of the environment variable named by the key
@@ -18,6 +19,65 @@ func String(key string, defaultValue ...string) string {
 	if value, ok := os.LookupEnv(key); ok {
 		if value != "" {
 			return value
+		}
+	}
+
+	if len(defaultValue) > 0 {
+		return defaultValue[0]
+	}
+
+	panic("Missing env variable: '" + key + "'")
+}
+
+// Strings returns the value of the environment variable named by the key
+// panics if the environment variable is empty and no defaultValue is provided
+//
+// # If the environment variable is empty and no defaultValue is provided, it panics
+//
+// Example:
+//
+//	labels := env.Strings("LABELS", []string{"dev", "prod"})
+//	fmt.Println(labels) // [dev prod]
+func Strings(key string, defaultValue ...[]string) []string {
+	if value, ok := os.LookupEnv(key); ok {
+		if value != "" {
+			strings.Split(value, ",")
+		}
+	}
+
+	if len(defaultValue) > 0 {
+		return defaultValue[0]
+	}
+
+	panic("Missing env variable: '" + key + "'")
+}
+
+// StringEnum returns the value of the environment variable named by the key
+// panics if the environment variable is empty and no defaultValue is provided
+// ignore invalid values
+//
+// Example:
+//
+// type Enum string
+//
+// const (
+//
+//	EnumA Enum = "A"
+//	EnumB Enum = "B"
+//	EnumC Enum = "C"
+//
+// )
+//
+//	env.StringEnum("VARIABLE", []Enum{EnumA, EnumB, EnumC}, EnumA)
+//	env.StringEnum("VARIABLE", []Enum{EnumA, EnumB}) // panics if the environment variable is 'C'
+func StringEnum[T ~string](key string, enums []T, defaultValue ...T) T {
+	if value, ok := os.LookupEnv(key); ok {
+		if value != "" {
+			for _, e := range enums {
+				if value == string(e) {
+					return e
+				}
+			}
 		}
 	}
 
